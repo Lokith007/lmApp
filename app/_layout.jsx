@@ -1,14 +1,20 @@
 import { Stack } from "expo-router";
-import "./globals.css"
 import Toast from 'react-native-toast-message';
+import "./globals.css";
+
 export default function Layout() {
   return (
-    <Stack>
-        <Stack.Screen name="index" options={{ headerShown : false }}/>
-        <Stack.Screen name="(auth)" options={{ headerShown : false }}/>
-        <Stack.Screen name="(tabs)" options={{ headerShown : false }}/>
-        <Toast />
-
-    </Stack>
-);
+    <>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
+      </Stack>
+      <Toast />
+    </>
+  );
 }

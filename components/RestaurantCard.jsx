@@ -9,7 +9,7 @@ export default function RestaurantCard({ restaurant, index }) {
     <Link href={`/restaurants/${id}`} asChild>
       <TouchableOpacity className="w-44 mr-4">
         <Image
-          source={{ uri: logo }}
+          source={{ uri: logo }} 
           className="w-44 h-28 rounded-xl"
           resizeMode="cover"
         />

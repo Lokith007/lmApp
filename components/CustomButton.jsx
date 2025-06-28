@@ -5,7 +5,7 @@ const CustomButton = ({ title, handlePress, containerStyle, textStyles, isLoadin
     return (
         <TouchableOpacity
             onPress={handlePress}
-            activeOpacity={0.7}
+            activeOpacity={0.7} 
 
             className={`bg-purple-500 rounded-xl min-h-[62px] justify-center items-center ${containerStyle}  ${isLoading ? 'opacity-50' : ''}`}>
             {isLoading ? (

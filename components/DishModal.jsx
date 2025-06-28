@@ -7,7 +7,7 @@ export default function DishModal({ visible, dish, onClose, onAdd }) {
   if (!dish) return null;
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} animationType="slide" transparent> 
       <View className="flex-1  justify-end">
         <View className="bg-white rounded-t-3xl p-6 max-h-[75%]">
           <Image source={{ uri: dish.imageUrl }} className="w-full h-48 rounded-xl" />

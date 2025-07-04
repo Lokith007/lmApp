@@ -12,14 +12,14 @@ export default function DishModal({ visible, dish, onClose, restaurant }) {
 
     if (!dish) return null;
 
-    return (
-        <Modal visible={visible} animationType="slide" transparent>
-            <View className="flex-1  justify-end">
-                <View className="bg-white rounded-t-3xl p-6 max-h-[75%]">
-                    <Image source={{ uri: dish.imageUrl }} className="w-full h-48 rounded-xl" />
-                    <Text className="text-xl font-semibold mt-3">{dish.name}</Text>
-                    <Text className="text-gray-500">{dish.description}</Text>
-                    <Text className="text-lg font-bold mt-2">₹{dish.price}</Text>
+  return (
+    <Modal visible={visible} animationType="slide" transparent> 
+      <View className="flex-1  justify-end">
+        <View className="bg-white rounded-t-3xl p-6 max-h-[75%]">
+          <Image source={{ uri: dish.imageUrl }} className="w-full h-48 rounded-xl" />
+          <Text className="text-xl font-semibold mt-3">{dish.name}</Text>
+          <Text className="text-gray-500">{dish.description}</Text>
+          <Text className="text-lg font-bold mt-2">₹{dish.price}</Text>
 
                     {/* simple qty selector */}
                     <View className="flex-row items-center mt-4 space-x-4">

@@ -13,7 +13,6 @@ import {
 import { db } from '../../FirebaseConfig';
 import DishCard from '../../components/DishCard';
 import DishModal from '../../components/DishModal';
-
 const screenWidth = Dimensions.get("window").width;
 const horizontalPadding = 40; // px-5 on both sides = 20 + 20
 const cardGap = 20; // gap between cards
@@ -95,17 +94,9 @@ export default function RestaurantScreen() {
             <DishModal
         visible={!!selectedDish}
         dish={selectedDish}
+        restaurant={restaurant}
         onClose={() => setSelectedDish(null)}
-        onAdd={async (qty) => {
-          if (!selectedDish) return;
-          await addToCart({
-            userId   : user.uid,
-            restaurant,
-            dish     : selectedDish,
-            quantity : qty,
-          });
-          setSelectedDish(null);
-        }}
+
       />
 
     </View>

@@ -61,7 +61,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="food"
         options={{
-          title: 'Food',
+          title: 'Cart',
           tabBarIcon: ({ color }) => <AnimatedIcon name="shopping-bag" color={color} />,
         }}
       />

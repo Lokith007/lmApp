@@ -100,13 +100,13 @@ export default function CartScreen() {
 
       <View className="flex-row items-center space-x-4">
         <TouchableOpacity onPress={() => changeQty(index, -1)}>
-          <Text className="text-2xl">−</Text>
+          <Text className="text-2xl">-</Text>
         </TouchableOpacity>
 
         <Text className="text-xl">{item.quantity}</Text>
 
         <TouchableOpacity onPress={() => changeQty(index, +1)}>
-          <Text className="text-2xl">＋</Text>
+          <Text className="text-2xl">+</Text>
         </TouchableOpacity>
       </View>
     </View>

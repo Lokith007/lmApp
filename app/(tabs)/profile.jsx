@@ -32,14 +32,14 @@ const Profile = () => {
         <CustomButton
           title="Sign Out"
           handlePress={handleSignOut}
-          containerStyle="w-32 bg-purple-600"
+          containerStyle="w-32 bg-primary"
           textStyles="text-sm"
         />
       </View>
 
       <View className="mt-10 items-center">
-        <Text className="text-xl font-semibold text-purple-700">Welcome,</Text>
-        <Text className="text-2xl font-bold text-purple-900 mt-2">
+        <Text className="text-xl font-semibold text-primary">Welcome,</Text>
+        <Text className="text-2xl font-bold text-primary mt-2">
           {userName || 'Guest'}
         </Text>
       </View>

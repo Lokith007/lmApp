@@ -11,7 +11,7 @@ export default function RestaurantCard({ restaurant, index }) {
         <Image
           source={{ uri: logo }} 
           className="w-44 h-28 rounded-xl"
-          resizeMode="cover"
+          resizeMode="contain"
         />
 
         <View className="mt-2">

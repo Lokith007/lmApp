@@ -3,34 +3,8 @@ import { Tabs } from 'expo-router'
 import Icon from 'react-native-vector-icons/Feather'
 import { Pressable, Animated } from 'react-native'
 import React, { useRef } from 'react'
+import { Ionicons } from '@expo/vector-icons';
 
-const AnimatedIcon = ({ name, color }: { name: string; color: string }) => {
-  const scale = useRef(new Animated.Value(1)).current
-
-  const handlePressIn = () => {
-    Animated.spring(scale, {
-      toValue: 0.9,
-      useNativeDriver: true,
-    }).start()
-  }
-
-  const handlePressOut = () => {
-    Animated.spring(scale, {
-      toValue: 1,
-      friction: 3,
-      tension: 40,
-      useNativeDriver: true,
-    }).start()
-  }
-
-  return (
-    <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut}>
-      <Animated.View style={{ transform: [{ scale }] }}>
-        <Icon name={name} color={color} size={24} />
-      </Animated.View>
-    </Pressable>
-  )
-}
 
 export default function TabsLayout() {
   return (
@@ -43,11 +17,9 @@ export default function TabsLayout() {
           borderTopWidth: 1,
           borderTopColor: '#e5e7eb',
           height: 70,
-          paddingBottom: 10,
+          paddingTop: 7
         },
-        tabBarLabelStyle: {
-          fontSize: 12,
-        },
+        tabBarShowLabel: false,
         headerShown: false,
       }}
     >
@@ -55,28 +27,28 @@ export default function TabsLayout() {
         name="home"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <AnimatedIcon name="home" color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons name="home" color={color} size={30}/>,
         }}
       />
       <Tabs.Screen
         name="food"
         options={{
           title: 'Cart',
-          tabBarIcon: ({ color }) => <AnimatedIcon name="shopping-bag" color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons name="cart" color={color} size={30}/>,
         }}
       />
       <Tabs.Screen
         name="reorder"
         options={{
           title: 'Reorder',
-          tabBarIcon: ({ color }) => <AnimatedIcon name="repeat" color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons name="repeat" color={color} size={30}/>,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color }) => <AnimatedIcon name="user" color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons name="person" color={color} size={30}/>,
         }}
       />
     </Tabs>

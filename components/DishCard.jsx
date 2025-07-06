@@ -49,7 +49,7 @@ export default function DishCard({
         <View className="absolute bottom-9 -left-3.5 -top-1 px-2 py-1 rounded-full">
           <MaskedView
             maskElement={
-              <Text className="font-bold text-white text-6xl">
+              <Text className="font-bold text-white text-6xl ml-3 mt-2">
                 {index + 1}
               </Text>
             }
@@ -74,7 +74,7 @@ export default function DishCard({
           </Text>
         )}
 
-        <Text className="text-sm mt-1 font-semibold text-light-100">
+        <Text className="mt-1 font-semibold text-success text-light-100">
           ₹{price} {isAvailable ? '' : '(Unavailable)'}
         </Text>
       </View>

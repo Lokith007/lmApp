@@ -30,7 +30,7 @@ const SignIn = () => {
     <SafeAreaView className="bg-white h-full">
       <ScrollView>
         <View className="w-full justify-center min-h-[85vh] px-4 my-6">
-          <Text className="text-2xl font-bold text-center text-purple-600 mb-4">Login to Grabit</Text>
+          <Text className="text-2xl font-bold text-center text-primary mb-4">Login to Grabit</Text>
           <FormFields
             title="Email"
             value={form.email}
@@ -48,7 +48,7 @@ const SignIn = () => {
           <CustomButton title="Sign In" isLoading={isSubmitting} handlePress={Submit} containerStyle="mt-7" />
           <View className="flex-row justify-center mt-5">
             <Text>Don't have an account?</Text>
-            <Link href="/sign-up" className="text-purple-500 font-semibold ml-1">Sign Up</Link>
+            <Link href="/sign-up" className="text-primary font-semibold ml-1">Sign Up</Link>
           </View>
         </View>
       </ScrollView>

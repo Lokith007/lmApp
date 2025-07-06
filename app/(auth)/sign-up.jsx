@@ -83,7 +83,7 @@ const SignUp = () => {
           keyboardShouldPersistTaps="handled"
         >
           <View>
-              <Text className="text-2xl font-bold text-center text-purple-600 mb-4">
+              <Text className="text-2xl font-bold text-center text-primary mb-4">
                 Create Account on Grabit
               </Text>
 
@@ -139,7 +139,7 @@ const SignUp = () => {
 
               <View className="flex-row justify-center mt-5">
                 <Text>Already have an account?</Text>
-                <Link href="/sign-in" className="text-purple-500 font-semibold ml-1">
+                <Link href="/sign-in" className="text-primary font-semibold ml-1">
                   Sign In
                 </Link>
               </View>

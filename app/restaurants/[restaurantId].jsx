@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, FlatList, Dimensions } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { View, Text, Image, FlatList, Dimensions, TouchableOpacity } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import {
   collection,
   doc,
@@ -13,6 +14,8 @@ import {
 import { db } from '../../FirebaseConfig';
 import DishCard from '../../components/DishCard';
 import DishModal from '../../components/DishModal';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Loader from '../../components/Loader';
 const screenWidth = Dimensions.get("window").width;
 const horizontalPadding = 40; // px-5 on both sides = 20 + 20
 const cardGap = 20; // gap between cards
@@ -27,11 +30,13 @@ export default function RestaurantScreen() {
   const [restaurant, setRestaurant] = useState(null);
   const [menu, setMenu] = useState([]);
   const [selectedDish, setSelectedDish] = useState(null);
-  
+  const [loading, setLoading] = useState(false);
+
   // fetch restaurant header + dishes
   useEffect(() => {
     async function load() {
       try {
+        setLoading(true);
         // ── restaurant document
         const restSnap = await getDoc(doc(db, 'restaurants', restaurantId));
         if (restSnap.exists()) {
@@ -49,56 +54,77 @@ export default function RestaurantScreen() {
         setMenu(dishes);
       } catch (err) {
         console.error('Error loading restaurant page:', err);
+      } finally {
+        setLoading(false);
       }
     }
     load();
   }, [restaurantId]);
 
+  if (loading) return <Loader text='Loading restaurant details...' />;
+
   return (
-    <View className="flex-1 p-4">
-      {restaurant && (
-        <>
-          <Image
-            source={{ uri: restaurant.logo }}
-            className="w-full h-48 rounded-xl"
-            resizeMode="cover"
-          />
-          <Text className="text-2xl font-bold mt-3">{restaurant.name}</Text>
-          <Text className="text-sm text-gray-500 mb-4">{restaurant.admin}</Text>
-        </>
-      )}
+    // <SafeAreaView>
+    <SafeAreaView className='bg-white h-full'>
+      <View className="flex-1 p-4">
+        {/* header */}
+        {restaurant &&
+          <View className="flex-row items-center justify-between mb-4 px-2">
+            <TouchableOpacity onPress={() => router.back()} className='w-32'>
+              <Ionicons name="arrow-back" size={28} color="#333" />
+            </TouchableOpacity>
 
-      <FlatList
-        data={menu}
-        keyExtractor={item => item.id}
-        numColumns={2}
-        showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={false}
-        className="mb-4 mt-3"
-        renderItem={({ item, index }) => (
-          <DishCard
-            item={item}
-            index={index}
-            variant="grid"
-            cardWidth={cardWidth}
-            showRank={false}
-            onPress={() => setSelectedDish(item)}
+            <Text className="text-xl font-bold text-primary flex-1 text-center -ml-6">
+              {restaurant.name}
+            </Text>
 
-          />)}
-        columnWrapperStyle={{
-          justifyContent: "flex-start",
-          gap: cardGap,
-          marginBottom: 10,
-        }}
-      />
-            <DishModal
-        visible={!!selectedDish}
-        dish={selectedDish}
-        restaurant={restaurant}
-        onClose={() => setSelectedDish(null)}
+            <View className="w-32"></View>
+          </View>
+        }
 
-      />
+        {/* food details */}
+        <FlatList
+          ListHeaderComponent={restaurant && <RestaurantHeader restaurant={restaurant} />}
+          data={menu}
+          keyExtractor={item => item.id}
+          numColumns={2}
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
+          className="mb-4 mt-3"
+          renderItem={({ item, index }) => (
+            <DishCard
+              item={item}
+              index={index}
+              variant="grid"
+              cardWidth={screenWidth / 2.27}
+              showRank={false}
+              onPress={() => setSelectedDish(item)}
 
-    </View>
+            />)}
+          columnWrapperStyle={{
+            justifyContent: "flex-start",
+            gap: cardGap,
+            marginBottom: 10,
+          }}
+        />
+        <DishModal
+          visible={!!selectedDish}
+          dish={selectedDish}
+          restaurant={restaurant}
+          onClose={() => setSelectedDish(null)}
+        />
+      </View>
+    </SafeAreaView>
   );
 }
+
+const RestaurantHeader = ({ restaurant }) => (
+  <View>
+
+    <Image
+      source={{ uri: restaurant.logo }}
+      className="w-full h-60 rounded-xl mb-5"
+      resizeMode="contain"
+    />
+  </View>
+)

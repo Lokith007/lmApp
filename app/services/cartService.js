@@ -10,7 +10,7 @@ import {
     updateDoc,
     where,
   } from 'firebase/firestore';
-import { db } from '../FirebaseConfig';  
+import { db } from '../../FirebaseConfig';  
   // ──────────────────────────────────────────────────────────────
   // addToCart({ userId, restaurant, dish, quantity })
   // ──────────────────────────────────────────────────────────────

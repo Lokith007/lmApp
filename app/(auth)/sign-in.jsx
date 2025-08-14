@@ -1,59 +1,36 @@
-import { View, Text, ScrollView } from 'react-native';
 import React, { useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import FormFields from '../../components/FormFields';
-import CustomButton from '../../components/CustomButton';
-import { Link, router } from 'expo-router';
-import { FIREBASE_AUTH } from '../../FirebaseConfig';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import Toast from 'react-native-toast-message';
+import { View, TextInput, Button, Text } from 'react-native';
+import { useMutation, gql } from '@apollo/client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const SignIn = () => {
-  const [form, setForm] = useState({ email: '', password: '' });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const auth = FIREBASE_AUTH;
-
-  const Submit = async () => {
-    setIsSubmitting(true);
-    try {
-      const response = await signInWithEmailAndPassword(auth, form.email, form.password);
-      Toast.show({ type: 'success', text1: 'Signed In Successfully!' });
-      router.replace('/home');
-    } catch (error) {
-      Toast.show({ type: 'error', text1: 'Sign In Failed', text2: error.message });
-    } finally {
-      setIsSubmitting(false);
+const SIGN_IN = gql`
+  mutation SignIn($email: String!, $password: String!) {
+    signIn(email: $email, password: $password) {
+      token
+      userId
     }
-  };
+  }
+`;
+
+export default function SignIn({ navigation, onLogin }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const [signIn, { loading, error }] = useMutation(SIGN_IN, {
+    onCompleted: async (data) => {
+      await AsyncStorage.setItem('token', data.signIn.token);
+      onLogin();
+    },
+  });
 
   return (
-    <SafeAreaView className="bg-white h-full">
-      <ScrollView>
-        <View className="w-full justify-center min-h-[85vh] px-4 my-6">
-          <Text className="text-2xl font-bold text-center text-primary mb-4">Login to Grabit</Text>
-          <FormFields
-            title="Email"
-            value={form.email}
-            handleChangeText={(e) => setForm({ ...form, email: e })}
-            otherStyles="mt-7"
-            keyboard-type="email-address"
-          />
-          <FormFields
-            title="Password"
-            value={form.password}
-            handleChangeText={(e) => setForm({ ...form, password: e })}
-            otherStyles="mt-7"
-            secureTextEntry
-          />
-          <CustomButton title="Sign In" isLoading={isSubmitting} handlePress={Submit} containerStyle="mt-7" />
-          <View className="flex-row justify-center mt-5">
-            <Text>Don't have an account?</Text>
-            <Link href="/sign-up" className="text-primary font-semibold ml-1">Sign Up</Link>
-          </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <View style={{ padding: 20 }}>
+      <Text>Sign In</Text>
+      <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={{ borderWidth: 1, marginBottom: 10 }} />
+      <TextInput placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} style={{ borderWidth: 1, marginBottom: 10 }} />
+      {error && <Text style={{ color: 'red' }}>{error.message}</Text>}
+      <Button title={loading ? 'Loading...' : 'Sign In'} onPress={() => signIn({ variables: { email, password } })} />
+      <Button title="Go to Sign Up" onPress={() => navigation.navigate('SignUp')} />
+    </View>
   );
-};
-
-export default SignIn;
+}

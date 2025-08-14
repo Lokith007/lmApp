@@ -1,40 +1,34 @@
-import { View, ScrollView } from 'react-native';
-import { Link, Redirect, router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { onAuthStateChanged } from 'firebase/auth';
-import { FIREBASE_AUTH } from '../FirebaseConfig';
-import CustomButton from '../components/CustomButton';
+import React, { useEffect, useState } from 'react';
+import { View, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 
-export default function App() {
-  const [initializing, setInitializing] = useState(true);
-  const [user, setUser] = useState(null);
+export default function Page() {
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, (user) => {
-      setUser(user);
-      setInitializing(false);
-    });
-
-    return unsubscribe;
+    const checkAuth = async () => {
+      const token = await AsyncStorage.getItem('token');
+      if (token) {
+        // User already logged in → go to main tabs
+        router.replace('/home');
+      } else {
+        // No token → go to sign in
+        router.replace('/sign-in'); // NOT /auth/sign-in
+      }
+      setLoading(false);
+    };
+    checkAuth();
   }, []);
 
-  if (initializing) return null;
+  if (loading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-gray-50">
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
-  if (user) return <Redirect href="/home" />;
-
-  return (
-    <SafeAreaView className='bg-white h-full'>
-      <ScrollView contentContainerStyle={{ height: '100%' }}>
-        <View className='w-full justify-center items-center min-h-[85vh] px-4'>
-          <Link href="/home">Home</Link>
-          <CustomButton
-            title="Continue with email"
-            handlePress={() => router.push('/sign-in')}
-            containerStyle="w-full mt-7"
-          />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+  return null; // No UI here since we redirect
 }

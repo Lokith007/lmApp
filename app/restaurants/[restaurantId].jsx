@@ -2,16 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Image, FlatList, Dimensions, TouchableOpacity } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  orderBy,
-  query,
-  where,
-} from 'firebase/firestore';
-import { db } from '../../FirebaseConfig';
 import DishCard from '../../components/DishCard';
 import DishModal from '../../components/DishModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,44 +13,45 @@ const cardsPerRow = 2;
 
 const totalGap = cardGap * (cardsPerRow - 1);
 const cardWidth = (screenWidth - horizontalPadding - totalGap) / cardsPerRow;
+import { gql, useQuery } from "@apollo/client";
 
+const GET_MENU_BY_RESTAURANT_NAME = gql`
+  query GetMenuByRestaurantName($name: String!) {
+    getMenuByRestaurantName(name: $name) {
+    name
+    menu {
+      name
+      freq
+      category
+      description
+      imageUrl
+      isAvailable
+      price
+    }
+    admin
+    isOpen
+    logo
+    }
+  }
+`;
 
 export default function RestaurantScreen() {
   const { restaurantId } = useLocalSearchParams();
-  const [restaurant, setRestaurant] = useState(null);
-  const [menu, setMenu] = useState([]);
+
   const [selectedDish, setSelectedDish] = useState(null);
-  const [loading, setLoading] = useState(false);
 
-  // fetch restaurant header + dishes
-  useEffect(() => {
-    async function load() {
-      try {
-        setLoading(true);
-        // ── restaurant document
-        const restSnap = await getDoc(doc(db, 'restaurants', restaurantId));
-        if (restSnap.exists()) {
-          setRestaurant({ id: restSnap.id, ...restSnap.data() });
-        }
-
-        // ── its menu sub‑collection, ordered by freq (all dishes, no limit)
-        const menuQuery = query(
-          collection(db, 'restaurants', restaurantId, 'menu'),
-          where('freq', '>=', 0),
-          orderBy('freq', 'desc')
-        );
-        const menuSnap = await getDocs(menuQuery);
-        const dishes = menuSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-        setMenu(dishes);
-      } catch (err) {
-        console.error('Error loading restaurant page:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
-  }, [restaurantId]);
-
+     
+  const { data, loading, error } = useQuery(GET_MENU_BY_RESTAURANT_NAME, {
+      variables: { name: restaurantId, limit: 3 },
+    });
+  
+    if (loading) return <Loader text="Loading menu..." />;
+    
+    if (error) return <Text>Error: {error.message}</Text>;
+  
+    const restaurant = data.getMenuByRestaurantName;
+    const menu = restaurant.menu;
+  
   if (loading) return <Loader text='Loading restaurant details...' />;
 
   return (
@@ -86,7 +77,7 @@ export default function RestaurantScreen() {
         <FlatList
           ListHeaderComponent={restaurant && <RestaurantHeader restaurant={restaurant} />}
           data={menu}
-          keyExtractor={item => item.id}
+          keyExtractor={item => `${item.id}-${item.name.replace(/\s+/g, '_')}`}
           numColumns={2}
           showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={false}

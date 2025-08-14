@@ -1,18 +1,19 @@
-import { View, Text } from 'react-native'
-import React from 'react'
-import { Stack } from 'expo-router'
+import React from 'react';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import SignIn from './sign-in';
+import SignUp from './sign-up';
 
-const AuthLayout = () => {
+const Stack = createNativeStackNavigator();
+
+export default function AuthStack({ onLogin }) {
   return (
-    <>
-      <Stack>
-        <Stack.Screen name='sign-in'
-          options={{ headerShown: false }} />
-        <Stack.Screen name='sign-up'
-          options={{ headerShown: false }} />
-      </Stack>
-    </>
-  )
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="SignIn">
+        {props => <SignIn {...props} onLogin={onLogin} />}
+      </Stack.Screen>
+      <Stack.Screen name="SignUp">
+        {props => <SignUp {...props} onLogin={onLogin} />}
+      </Stack.Screen>
+    </Stack.Navigator>
+  );
 }
-
-export default AuthLayout

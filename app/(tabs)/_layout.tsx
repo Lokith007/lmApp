@@ -1,12 +1,12 @@
 // tabs/_layout.tsx
 import { Tabs } from 'expo-router'
-import Icon from 'react-native-vector-icons/Feather'
-import { Pressable, Animated } from 'react-native'
-import React, { useRef } from 'react'
+
+import React from 'react'
 import { Ionicons } from '@expo/vector-icons';
 
-
 export default function TabsLayout() {
+
+
   return (
     <Tabs
       screenOptions={{

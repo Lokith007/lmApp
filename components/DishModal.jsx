@@ -7,7 +7,7 @@ import {
     TouchableOpacity,
     TouchableWithoutFeedback,
 } from 'react-native';
-import { addToCart } from '../services/cartService';
+import { addToCart } from '../app/services/cartService';
 import { FIREBASE_AUTH } from '../FirebaseConfig';
 import { Ionicons } from '@expo/vector-icons';
 

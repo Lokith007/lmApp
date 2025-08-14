@@ -1,145 +1,154 @@
-// CartScreen.jsx
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity } from 'react-native';
-import { db , FIREBASE_AUTH } from '../../FirebaseConfig';
+import React from "react";
+import { View, Text, TouchableOpacity, FlatList } from "react-native";
+import { gql, useQuery, useMutation } from "@apollo/client";
+import { FIREBASE_AUTH } from "../../FirebaseConfig";
 
-import {
-  collection,
-  query,
-  where,
-  limit,
-  onSnapshot,
-  updateDoc,
-  doc,
-  deleteDoc,
-  serverTimestamp,
-} from 'firebase/firestore';
+const GET_CART = gql`
+  query GetCart($userId: String!) {
+    getCart(userId: $userId) {
+      id
+      items {
+        dishId
+        name
+        price
+        quantity
+      }
+      totalAmount
+    }
+  }
+`;
+
+const UPDATE_CART_ITEM = gql`
+  mutation UpdateCartItem($userId: String!, $dishId: String!, $delta: Int!) {
+    updateCartItem(userId: $userId, dishId: $dishId, delta: $delta) {
+      id
+      items {
+        dishId
+        name
+        price
+        quantity
+      }
+      totalAmount
+    }
+  }
+`;
 
 export default function CartScreen() {
-  const [cartId, setCartId]   = useState(null);
-  const [items, setItems]     = useState([]);
-  const [total, setTotal]     = useState(0);
   const user = FIREBASE_AUTH.currentUser;
 
-  // ────────────────────────────────────────────────
-  // 1. Listen for the active cart in real‑time
-  // ────────────────────────────────────────────────
-  useEffect(() => {
-    if (!user?.uid) return;
-
-    const q = query(
-      collection(db, 'orders'),
-      where('userId', '==', user.uid),
-      where('orderStatus', '==', 'cart'),
-      limit(1)
-    );
-
-    const unsub = onSnapshot(q, snap => {
-      if (snap.empty) {
-        setCartId(null);
-        setItems([]);
-        setTotal(0);
-        return;
-      }
-
-      const docSnap = snap.docs[0];
-      const data    = docSnap.data();
-
-      setCartId(docSnap.id);
-      setItems(data.items);
-      setTotal(data.totalAmount);
-    });
-
-    return unsub;           // cleanup
-  }, [user?.uid]);
-
-  // ────────────────────────────────────────────────
-  // 2. Helpers ‑ add / remove quantity
-  // ────────────────────────────────────────────────
-  const changeQty = async (index, delta) => {
-    if (!cartId) return;
-
-    const cartRef   = doc(db, 'orders', cartId);
-    const newItems  = [...items];
-    newItems[index].quantity += delta;
-
-    // Remove item if quantity drops to 0
-    if (newItems[index].quantity <= 0) newItems.splice(index, 1);
-
-    // Cart empty? -> delete doc & return
-    if (newItems.length === 0) {
-      await deleteDoc(cartRef);
-      return;
-    }
-
-    // Re‑calc total
-    const newTotal = newItems.reduce(
-      (sum, i) => sum + i.price * i.quantity,
-      0
-    );
-
-    await updateDoc(cartRef, {
-      items: newItems,
-      totalAmount: newTotal,
-      updatedAt: serverTimestamp(),
-    });
-  };
-
-  // ────────────────────────────────────────────────
-  // 3. UI
-  // ────────────────────────────────────────────────
-  const renderItem = ({ item, index }) => (
-    <View
-      key={item.dishId}
-      className="flex-row justify-between items-center py-3 border-b border-gray-200"
-    >
-      <View>
-        <Text className="text-lg font-semibold">{item.name}</Text>
-        <Text className="text-gray-500">₹{item.price}</Text>
-      </View>
-
-      <View className="flex-row items-center space-x-4">
-        <TouchableOpacity onPress={() => changeQty(index, -1)}>
-          <Text className="text-2xl">-</Text>
-        </TouchableOpacity>
-
-        <Text className="text-xl">{item.quantity}</Text>
-
-        <TouchableOpacity onPress={() => changeQty(index, +1)}>
-          <Text className="text-2xl">+</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
-  if (!user?.uid) {
+  if (!user) {
     return (
-      <View className="flex-1 justify-center items-center">
-        <Text>Please sign in to view your cart.</Text>
+      <View className="flex-1 items-center justify-center bg-white">
+        <Text className="text-gray-600 text-lg">Please log in to view your cart.</Text>
       </View>
     );
   }
 
-  if (!cartId) {
+  const { data, refetch } = useQuery(GET_CART, {
+    variables: { userId: user.uid },
+  });
+
+  // inside CartScreen.jsx (imports unchanged)
+  const [updateCart, { loading: updating, error: updateError }] = useMutation(
+    UPDATE_CART_ITEM,
+    {
+      onError: (err) => {
+        console.log("UPDATE_CART_ITEM error:", err);
+      },
+      // update cache with returned cart (avoid a full refetch)
+      update: (cache, { data }) => {
+        const updatedCart = data?.updateCartItem;
+        if (!updatedCart) {
+          // cart deleted -> remove from cache
+          cache.writeQuery({
+            query: GET_CART,
+            variables: { userId: user.uid },
+            data: { getCart: null },
+          });
+          return;
+        }
+
+        cache.writeQuery({
+          query: GET_CART,
+          variables: { userId: user.uid },
+          data: { getCart: updatedCart },
+        });
+      },
+    }
+  );
+
+  // helper used in UI
+  const changeQty = (dishId, delta) => {
+    if (!user?.uid) return;
+    updateCart({
+      variables: { userId: user.uid, dishId, delta },
+      // optional optimistic UI (quick feedback)
+      optimisticResponse: {
+        updateCartItem: (() => {
+          const current = data?.getCart;
+          if (!current) return null;
+          const items = current.items.map(it =>
+            it.dishId === dishId ? { ...it, quantity: it.quantity + delta } : it
+          ).filter(it => it.quantity > 0);
+          const totalAmount = items.reduce((s, i) => s + i.price * i.quantity, 0);
+          return { id: current.id, items, totalAmount, __typename: "Cart" };
+        })()
+      }
+    });
+  };
+
+
+  if (!data?.getCart?.items?.length) {
     return (
-      <View className="flex-1 justify-center items-center">
-        <Text>Your cart is empty.</Text>
+      <View className="flex-1 items-center justify-center bg-white">
+        <Text className="text-gray-600 text-lg">Your cart is empty.</Text>
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-white p-4">
+    <View className="flex-1 bg-gray-50">
       <FlatList
-        data={items}
-        keyExtractor={item => item.dishId}
-        renderItem={renderItem}
+        data={data.getCart.items}
+        keyExtractor={(item) => item.dishId}
+        contentContainerStyle={{ padding: 16 }}
+        renderItem={({ item }) => (
+          <View className="flex-row items-center justify-between bg-white rounded-xl p-4 mb-3 shadow-sm">
+            <View>
+              <Text className="text-lg font-semibold text-gray-800">{item.name}</Text>
+              <Text className="text-sm text-gray-500">₹{item.price}</Text>
+            </View>
+
+            <View className="flex-row items-center space-x-4">
+              <TouchableOpacity onPress={() => changeQty(item.dishId, -1)}
+                className="bg-gray-200 rounded-full px-3 py-1"
+              >
+                <Text className="text-lg font-bold text-gray-700">-</Text>
+              </TouchableOpacity>
+
+              <Text className="text-lg font-medium text-gray-800">{item.quantity}</Text>
+
+              <TouchableOpacity onPress={() => changeQty(item.dishId, 1)}
+                className="bg-green-500 rounded-full px-3 py-1"
+              >
+                <Text className="text-lg font-bold text-white">+</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
       />
 
-      <View className="py-4 border-t border-gray-200">
-        <Text className="text-xl font-bold text-right">
-          Total  ₹{total}
-        </Text>
+      {/* Total Amount Bar */}
+      <View className="bg-white p-4 border-t border-gray-200">
+        <View className="flex-row justify-between">
+          <Text className="text-lg font-semibold text-gray-700">Total</Text>
+          <Text className="text-lg font-bold text-green-600">
+            ₹{data.getCart.totalAmount}
+          </Text>
+        </View>
+        <TouchableOpacity className="bg-green-600 py-3 mt-3 rounded-lg">
+          <Text className="text-center text-white font-semibold text-lg">Checkout</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );

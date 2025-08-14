@@ -41,7 +41,6 @@ const Home = () => {
         id: doc.id,
         ...doc.data()
       }));
-      console.log('Fetched Restaurants:', data);
       setRestaurants(data);
     } catch (err) {
       console.error('Error fetching restaurants:', err);
